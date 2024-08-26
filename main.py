@@ -8,7 +8,8 @@ pdf = FPDF(orientation='P', unit='mm',format='A4')
 start = dt.date(2023, 8, 30)
 start2 = dt.date(2023, 9, 1)
 rotations = 20
-# set rooms
+# TODO : set rooms number
+# TODO : set duties
 df = schedule_dataframe(start, start2, rotations)
 
 for i in range(0,20*12,12):
@@ -35,16 +36,18 @@ for i in range(0,20*12,12):
 
     pdf.cell(w=180, h=10, txt="Names", align='C', border=1, ln=1)
 
-    names = df.iloc[i:i+6, :]
+    names = df.iloc[i:i+12, :]
 
     for index, row in names.iterrows():
-
         # set rows
-        pdf.set_font(family='Helvetica', size=18)
-        pdf.cell(w=45, h=10, txt=str(row['trash']), align='C', border=1)
-        pdf.cell(w=45, h=10, txt="", align='C', border=1)
-        pdf.cell(w=45, h=10, txt=str(row['cleaning']), align='C', border=1)
-        pdf.cell(w=45, h=10, txt="", align='C', border=1, ln=1)
+        if index % 2 == 0:
+            pdf.set_font(family='Helvetica', size=18)
+            pdf.cell(w=45, h=10, txt=str(row['trash']), align='C', border=1)
+            pdf.cell(w=45, h=10, txt="", align='C', border=1)
+        elif index % 2 == 1:
+            pdf.set_font(family='Helvetica', size=18)
+            pdf.cell(w=45, h=10, txt=str(row['trash']), align='C', border=1)
+            pdf.cell(w=45, h=10, txt="", align='C', border=1, ln=1)
 
 
 pdf.output('schedule.pdf')
