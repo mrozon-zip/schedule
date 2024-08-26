@@ -1,47 +1,50 @@
+from fpdf import FPDF
+from functions import schedule_dataframe
 import datetime as dt
-import pandas as pd
-from functions import flatten_extend
+
+pdf = FPDF(orientation='P', unit='mm',format='A4')
+
+# Set start dates
+start = dt.date(2023, 8, 30)
+start2 = dt.date(2023, 9, 1)
+rotations = 20
+# set rooms
+df = schedule_dataframe(start, start2, rotations)
+
+for i in range(0,20*12,12):
+    rotation = df.iloc[i:i+12, :]
+    pdf.add_page()
+
+    # set header
+    columns = list(df.columns)
+    columns = [item.capitalize() for item in columns]
+    pdf.set_font(family='Helvetica', size=18, style='B')
+    pdf.cell(w=60, h=14, txt=str(columns[0]), align='C', border=1)
+    pdf.cell(w=60, h=14, txt=str(columns[1]), align='C', border=1)
+    pdf.cell(w=60, h=14, txt=str(columns[2]), align='C', border=1, ln=1)
+
+    for index, row in rotation.iterrows():
+
+        # set rows
+        pdf.set_font(family='Helvetica', size=18)
+        pdf.cell(w=60, h=14, txt=str(row['dates']), align='C', border=1)
+        pdf.cell(w=60, h=14, txt=str(row['trash']), align='C', border=1)
+        pdf.cell(w=60, h=14, txt=str(row['cleaning']), align='C', border=1, ln=1)
+
+    pdf.cell(w=0, h=10, ln=1)
+
+    pdf.cell(w=180, h=10, txt="Names", align='C', border=1, ln=1)
+
+    names = df.iloc[i:i+6, :]
+
+    for index, row in names.iterrows():
+
+        # set rows
+        pdf.set_font(family='Helvetica', size=18)
+        pdf.cell(w=45, h=10, txt=str(row['trash']), align='C', border=1)
+        pdf.cell(w=45, h=10, txt="", align='C', border=1)
+        pdf.cell(w=45, h=10, txt=str(row['cleaning']), align='C', border=1)
+        pdf.cell(w=45, h=10, txt="", align='C', border=1, ln=1)
 
 
-def schedule_dataframe(start, start2, rotations):
-    dates = []
-    cleaning = []
-    trash = []
-
-    delta = dt.timedelta(days=7)
-
-    for i in range(rotations*12):
-        friday = start + i * delta
-        sunday = start2 + i * delta
-        friday_formatted = friday.strftime('%d.%m')
-        sunday_formatted = sunday.strftime('%d.%m')
-        date = f"{friday_formatted}-{sunday_formatted}"
-        dates.append(date)
-
-    for j in range(rotations):
-        # First part of the sequence: 1106 to 1112
-        first_cleaning = [f'11{i:02}' for i in range(6, 13)]
-        # Second part of the sequence: 1101 to 1105
-        second_cleaning = [f'110{i}' for i in range(1, 6)]
-        # Combine the two parts
-        final_cleaning = first_cleaning + second_cleaning
-        cleaning.append(final_cleaning)
-        trash_iteration = [f"11{i:02}" for i in range(1,13)]
-        trash.append(trash_iteration)
-
-    cleaning = flatten_extend(cleaning)
-    trash = flatten_extend(trash)
-
-    data = {'dates': dates, 'trash': trash, 'cleaning': cleaning}
-
-    df = pd.DataFrame(data)
-
-    return df
-
-
-if __name__ == '__main__':
-    start = dt.date(2023, 8, 30)
-    start2 = dt.date(2023, 9, 1)
-    rotations = 20
-    df = schedule_dataframe(start, start2, rotations)
-    print(df.head())
+pdf.output('schedule.pdf')
